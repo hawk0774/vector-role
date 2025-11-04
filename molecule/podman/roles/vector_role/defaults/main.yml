@@ -1,0 +1,4 @@
+---
+# defaults file for vector-role
+ansible_user_id: vector
+vector_config_dir: /etc/vector

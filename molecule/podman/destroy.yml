@@ -1,0 +1,9 @@
+- name: Destroy molecule containers
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Stop and remove container
+      containers.podman.podman_container:
+        name: molecule
+        state: absent
+        rm: true

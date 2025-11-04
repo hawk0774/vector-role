@@ -1,0 +1,13 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Include vector-role from parent directory
+      ansible.builtin.include_role:
+        name: vector_role
+      vars:
+        vector_version: latest
+
+
+

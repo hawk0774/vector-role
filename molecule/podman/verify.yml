@@ -1,0 +1,23 @@
+---
+- name: Verify Vector
+  hosts: all
+  become: true
+  tasks:
+    - name: Check Vector service
+      service:
+        name: vector
+      register: svc
+
+    - name: Assert Vector running
+      assert:
+        that: svc.status.SubState == "running"
+
+    - name: Validate config
+      command: vector validate /etc/vector/vector.yaml
+      register: val
+      changed_when: false
+
+    - name: Assert config valid
+      assert:
+        that: val.rc == 0
+        fail_msg: "Config invalid: {{ val.stderr }}"

@@ -1,0 +1,64 @@
+---
+# tasks file for vector-role
+
+- name: Set Vector package facts
+  set_fact:
+    vector_pkg_url: "{{ 'https://packages.timber.io/vector/' ~ vector_version ~ '/vector_' ~ vector_version ~ '-1_amd64.deb' if inventory_hostname == 'ubuntu' else 'https://packages.timber.io/vector/' ~ vector_version ~ '/vector-' ~ vector_version ~ '-1.x86_64.rpm' }}"
+    vector_pkg_name: "{{ 'vector_' ~ vector_version ~ '-1_amd64.deb' if inventory_hostname == 'ubuntu' else 'vector-' ~ vector_version ~ '-1.x86_64.rpm' }}"
+
+- name: Download Vector package
+  command: "curl -L -o /tmp/vector-{{ vector_version }}-1.x86_64.rpm https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm"
+  args:
+    creates: "/tmp/vector-{{ vector_version }}-1.x86_64.rpm"
+  register: download_result
+  when: inventory_hostname == "oraclelinux"
+  until: download_result.rc == 0
+  retries: 3
+  delay: 5
+
+- name: Download Vector .deb package
+  ansible.builtin.get_url:
+    url: "https://packages.timber.io/vector/{{ vector_version }}/vector_{{ vector_version }}-1_amd64.deb"
+    dest: "/tmp/vector_{{ vector_version }}-1_amd64.deb"
+    mode: "0644"
+  register: vector_download
+  when: inventory_hostname == "ubuntu"
+  until: vector_download is succeeded
+  retries: 3
+  delay: 5
+
+- name: Install Vector package on Ubuntu
+  become: true
+  ansible.builtin.apt:
+    deb: "/tmp/{{ vector_pkg_name }}"
+  when: inventory_hostname == "ubuntu"
+
+- name: Install Vector on OracleLinux
+  command: "rpm -i /tmp/{{ vector_pkg_name }}"
+  when: inventory_hostname == "oraclelinux"
+  args:
+    creates: /usr/bin/vector
+
+- name: Apply vector template
+  ansible.builtin.template:
+    src: vector.yml.j2
+    mode: "0644"
+    owner: root
+    group: root
+    backup: true
+    dest: "{{ vector_config_dir }}/vector.yml"
+    validate: vector validate --no-environment --config-yaml %s
+
+- name: Change vector systemd unit
+  become: true
+  ansible.builtin.template:
+    src: vector.service.j2
+    dest: /usr/lib/systemd/system/vector.service
+    mode: "0644"
+    owner: root
+    group: root
+    backup: true
+  notify: Start Vector service
+
+- name: Flush handlers to apply changes
+  meta: flush_handlers
