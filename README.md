@@ -1,38 +1,55 @@
-Role Name
-=========
+# Ansible Role: Vector
 
-A brief description of the role goes here.
+[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-vector-blue)](https://galaxy.ansible.com/hawk0774/vector_role)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Requirements
-------------
+**Лёгкая и надёжная установка Vector — ультрабыстрого агента для сбора, обработки и передачи логов.**
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+---
 
-Role Variables
---------------
+## Особенности
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- Установка последней или указанной версии Vector
+- Автоматическая загрузка `.rpm` пакета с [официального сайта Timber](https://packages.timber.io)
+- Гибкая настройка через переменные
+- Поддержка `systemd`: автозапуск и управление сервисом
+- Идемпотентность: безопасно для повторных запусков
 
-Dependencies
-------------
+---
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+## Поддерживаемые платформы
 
-Example Playbook
-----------------
+- **CentOS 7 / 8**
+- **RHEL 7 / 8**
+- **Rocky Linux**
+- **AlmaLinux**
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+> Требуется: `ansible >= 2.14`, `become: yes`, доступ в интернет
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+---
 
-License
--------
+## Переменные роли
 
-BSD
+| Переменная | Описание | Тип | По умолчанию |
+|-----------|---------|-----|--------------|
+| `vector_version` | Версия Vector для установки | `string` | `0.35.0` |
+| `vector_config_dir` | Директория конфигурации | `string` | `/etc/vector` |
+| `vector_service_enabled` | Включить автозапуск | `bool` | `true` |
+| `vector_service_state` | Состояние сервиса | `string` | `started` |
 
-Author Information
-------------------
+> Пакет загружается с:  
+> `https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm`
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+---
+
+## Пример Playbook
+
+```yaml
+# playbook.yml
+- name: Установка Vector
+  hosts: logs
+  become: yes
+  roles:
+    - role: hawk0774.vector_role
+      vector_version: "0.36.0"
+      vector_service_state: started
