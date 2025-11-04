@@ -1,0 +1,9 @@
+---
+- name: Prepare
+  hosts: oraclelinux
+  gather_facts: false
+  tasks:
+    - name: Install Python3 on Oracle Linux if missing
+      raw: dnf install -y python38 sudo curl
+        
+

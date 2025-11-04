@@ -1,13 +1,28 @@
 ---
 # tasks file for vector-role
+- name: Set Vector package facts
+  set_fact:
+    vector_pkg_url: >-
+      {% if ansible_os_family == "Debian" %}
+      https://packages.timber.io/vector/{{ vector_version }}/vector_{{ vector_version }}-1_amd64.deb
+      {% else %}
+      https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm
+      {% endif %}
+    vector_pkg_name: >-
+      {% if ansible_os_family == "Debian" %}
+      vector_{{ vector_version }}-1_amd64.deb
+      {% else %}
+      vector-{{ vector_version }}-1.x86_64.rpm
+      {% endif %}
+
 - name: Download vector packages
   ansible.builtin.get_url:
-    url: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm"
-    dest: "./vector-{{ vector_version }}-1.x86_64.rpm"
+    url: "{{ vector_pkg_url }}"
+    dest: "./{{ vector_pkg_name }}"
 - name: Install vector packages
   become: true
   ansible.builtin.yum:
-    name: "./vector-{{ vector_version }}-1.x86_64.rpm"
+    name: "./{{ vector_pkg_name }}"
     disable_gpg_check: true
 - name: Apply vector template
   become: true
